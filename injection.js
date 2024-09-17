@@ -583,34 +583,32 @@ function modifyCode(text) {
 
 			function killauraAttack(entity, first) {
 				if (attackDelay < Date.now()) {
-					const aimPos = player$1.pos.clone().sub(entity.pos);
-					const newYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.lastReportedYawDump);
-					const checkYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.yaw);
-					if (first) sendYaw = Math.abs(checkYaw) > degToRad(30) && Math.abs(checkYaw) < degToRad(killauraangle[1]) ? player$1.lastReportedYawDump + newYaw : false;
-					if (Math.abs(newYaw) < degToRad(30)) {
-						if ((attackedPlayers[entity.id] || 0) < Date.now()) attackedPlayers[entity.id] = Date.now() + 100;
-						if (!didSwing) {
-							hud3D.swingArm();
-							ClientSocket.sendPacket(new SPacketClick({}));
-							didSwing = true;
-						}
-						const box = entity.getEntityBoundingBox();
-						const hitVec = player$1.getEyePos().clone().clamp(box.min, box.max);
-						attacked++;
-						playerControllerMP.syncItemDump();
-						ClientSocket.sendPacket(new SPacketUseEntity({
-							id: entity.id,
-							action: 1,
-							hitVec: new PBVector3({
-								x: hitVec.x,
-								y: hitVec.y,
-								z: hitVec.z
-							})
-						}));
-						player$1.attackDump(entity);
-					}
+					const originalPos = player$1.pos.clone(); // Salva a posição original
+					const fakePos = entity.pos.clone(); // Cria uma posição falsa perto do alvo
+
+					// Temporariamente move o jogador para perto do alvo para que o ataque seja validado
+					player$1.pos = fakePos;
+
+					const hitVec = entity.getEntityBoundingBox().getCenter();
+
+					// Sincroniza e envia o ataque
+					playerControllerMP.syncItemDump();
+					ClientSocket.sendPacket(new SPacketUseEntity({
+						id: entity.id,
+						action: 1, // Ataca a entidade
+						hitVec: new PBVector3({
+							x: hitVec.x,
+							y: hitVec.y,
+							z: hitVec.z
+						})
+					}));
+
+					// Restaura a posição original do jogador
+					player$1.pos = originalPos;
 				}
 			}
+
+
 
 			function swordCheck() {
 				const item = player$1.inventory.getCurrentItem();
