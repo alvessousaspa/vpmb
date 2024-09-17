@@ -669,9 +669,11 @@ function modifyCode(text) {
 						if (!killauraitem[1] || swordCheck()) {
 							for (const entity of entities.values()) {
 								if (entity.id == player$1.id) continue;
-									if (entity instanceof EntityPlayer) {
+								const newDist = player$1.getDistanceSqToEntity(entity);
+								if (newDist < (killaurarange[1] * killaurarange[1]) && entity instanceof EntityPlayer) {
 									if (entity.mode.isSpectator() || entity.mode.isCreative() || entity.isInvisibleDump()) continue;
 									if (localTeam && localTeam == getTeam(entity)) continue;
+
 									attackList.push(entity);
 								}
 							}
