@@ -583,30 +583,50 @@ function modifyCode(text) {
 
 			function killauraAttack(entity, first) {
 				if (attackDelay < Date.now()) {
-					const originalPos = player$1.pos.clone(); // Salva a posição original
-					const fakePos = entity.pos.clone(); // Cria uma posição falsa perto do alvo
+					const aimPos = player$1.pos.clone().sub(entity.pos);
+					const newYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.lastReportedYawDump);
+					const checkYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.yaw);
 
-					// Temporariamente move o jogador para perto do alvo para que o ataque seja validado
-					player$1.pos = fakePos;
+					if (first) sendYaw = Math.abs(checkYaw) > degToRad(30) && Math.abs(checkYaw) < degToRad(killauraangle[1]) ? player$1.lastReportedYawDump + newYaw : false;
 
-					const hitVec = entity.getEntityBoundingBox().getCenter();
+					if (Math.abs(newYaw) < degToRad(360)) {
+						if ((attackedPlayers[entity.id] || 0) < Date.now()) attackedPlayers[entity.id] = Date.now() + 100;
 
-					// Sincroniza e envia o ataque
-					playerControllerMP.syncItemDump();
-					ClientSocket.sendPacket(new SPacketUseEntity({
-						id: entity.id,
-						action: 1, // Ataca a entidade
-						hitVec: new PBVector3({
-							x: hitVec.x,
-							y: hitVec.y,
-							z: hitVec.z
-						})
-					}));
+						if (!didSwing) {
+							hud3D.swingArm();
+							ClientSocket.sendPacket(new SPacketClick({}));
+							didSwing = true;
+						}
 
-					// Restaura a posição original do jogador
-					player$1.pos = originalPos;
+						// Calcula uma posição de impacto ajustada com base no hitbox
+						const box = entity.getEntityBoundingBox();
+
+						// Amplia o hitbox para permitir ataques a distância
+						const extendedHitVec = new Vector3$1(
+							Math.max(player$1.getEyePos().x, box.min.x - killaurarange[1]), // Amplia o hitbox horizontal
+							player$1.getEyePos().y,
+							Math.max(player$1.getEyePos().z, box.min.z - killaurarange[1])  // Amplia o hitbox vertical
+						);
+
+						attacked++;
+						playerControllerMP.syncItemDump();
+
+						// Envia o pacote para o servidor simulando um ataque à distância
+						ClientSocket.sendPacket(new SPacketUseEntity({
+							id: entity.id,
+							action: 1, // Atacar entidade
+							hitVec: new PBVector3({
+								x: extendedHitVec.x,
+								y: extendedHitVec.y,
+								z: extendedHitVec.z
+							})
+						}));
+
+						player$1.attackDump(entity); // Executa o ataque no cliente
+					}
 				}
 			}
+
 
 
 
@@ -671,7 +691,7 @@ function modifyCode(text) {
 								if (newDist < (killaurarange[1] * killaurarange[1]) && entity instanceof EntityPlayer) {
 									if (entity.mode.isSpectator() || entity.mode.isCreative() || entity.isInvisibleDump()) continue;
 									if (localTeam && localTeam == getTeam(entity)) continue;
-
+									if (attackList.length >= 2) continue;
 									attackList.push(entity);
 								}
 							}
