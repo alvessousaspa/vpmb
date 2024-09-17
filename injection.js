@@ -581,58 +581,58 @@ function modifyCode(text) {
 				j
 			}
 
-function killauraAttack(entity, first) {
-    if (attackDelay < Date.now()) {
-        // Calcula a posição relativa entre o jogador e o alvo
-        const aimPos = player$1.pos.clone().sub(entity.pos);
-        
-        // Remove ou aumenta a verificação de ângulo, dependendo da sua preferência
-        const newYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.lastReportedYawDump);
-        const checkYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.yaw);
-        
-        if (first) {
-            sendYaw = Math.abs(checkYaw) > degToRad(30) && Math.abs(checkYaw) < degToRad(killauraangle[1]) ? player$1.lastReportedYawDump + newYaw : false;
-        }
+			function killauraAttack(entity, first) {
+				if (attackDelay < Date.now()) {
+					// Calcula a posição relativa entre o jogador e o alvo
+					const aimPos = player$1.pos.clone().sub(entity.pos);
+					
+					// Remove ou aumenta a verificação de ângulo, dependendo da sua preferência
+					const newYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.lastReportedYawDump);
+					const checkYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.yaw);
+					
+					if (first) {
+						sendYaw = Math.abs(checkYaw) > degToRad(30) && Math.abs(checkYaw) < degToRad(killauraangle[1]) ? player$1.lastReportedYawDump + newYaw : false;
+					}
 
-        // Agora permite atacar mesmo com alvos fora do alcance padrão
-        // Verificação de alcance removida
-        if (Math.abs(newYaw) < degToRad(360)) { // Altere o valor para permitir 360° de ataques
+					// Agora permite atacar mesmo com alvos fora do alcance padrão
+					// Verificação de alcance removida
+					if (Math.abs(newYaw) < degToRad(360)) { // Altere o valor para permitir 360° de ataques
 
-            if ((attackedPlayers[entity.id] || 0) < Date.now()) {
-                attackedPlayers[entity.id] = Date.now() + 100; // Tempo para o próximo ataque
-            }
+						if ((attackedPlayers[entity.id] || 0) < Date.now()) {
+							attackedPlayers[entity.id] = Date.now() + 100; // Tempo para o próximo ataque
+						}
 
-            if (!didSwing) {
-                hud3D.swingArm(); // Animação de ataque
-                ClientSocket.sendPacket(new SPacketClick({})); // Envia o comando de ataque
-                didSwing = true;
-            }
+						if (!didSwing) {
+							hud3D.swingArm(); // Animação de ataque
+							ClientSocket.sendPacket(new SPacketClick({})); // Envia o comando de ataque
+							didSwing = true;
+						}
 
-            // Calcula a posição de ataque e garante que ele aconteça mesmo à distância
-            const box = entity.getEntityBoundingBox();
-            const hitVec = player$1.getEyePos().clone().clamp(box.min, box.max);
+						// Calcula a posição de ataque e garante que ele aconteça mesmo à distância
+						const box = entity.getEntityBoundingBox();
+						const hitVec = player$1.getEyePos().clone().clamp(box.min, box.max);
 
-            attacked++; // Incrementa o contador de ataques
+						attacked++; // Incrementa o contador de ataques
 
-            // Sincroniza o ataque com o servidor, mesmo à longa distância
-            playerControllerMP.syncItemDump();
+						// Sincroniza o ataque com o servidor, mesmo à longa distância
+						playerControllerMP.syncItemDump();
 
-            // Envia o pacote de uso de entidade com a posição ajustada para atingir o alvo
-            ClientSocket.sendPacket(new SPacketUseEntity({
-                id: entity.id,
-                action: 1, // Ataca a entidade
-                hitVec: new PBVector3({
-                    x: hitVec.x, // Posição de acerto
-                    y: hitVec.y,
-                    z: hitVec.z
-                })
-            }));
+						// Envia o pacote de uso de entidade com a posição ajustada para atingir o alvo
+						ClientSocket.sendPacket(new SPacketUseEntity({
+							id: entity.id,
+							action: 1, // Ataca a entidade
+							hitVec: new PBVector3({
+								x: hitVec.x, // Posição de acerto
+								y: hitVec.y,
+								z: hitVec.z
+							})
+						}));
 
-            // Chama o método de ataque no cliente
-            player$1.attackDump(entity);
-        }
-    }
-}
+						// Chama o método de ataque no cliente
+						player$1.attackDump(entity);
+					}
+				}
+			}
 
 
 			function swordCheck() {
