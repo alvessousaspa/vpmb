@@ -585,8 +585,9 @@ function modifyCode(text) {
 				if (attackDelay < Date.now()) {
 					const aimPos = player$1.pos.clone().sub(entity.pos);
 					const newYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.lastReportedYawDump);
-					const checkYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.yaw);
-					if (first) sendYaw = Math.abs(checkYaw) > degToRad(30) && Math.abs(checkYaw) < degToRad(killauraangle[1]) ? player$1.lastReportedYawDump + newYaw : false;
+const checkYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.yaw);
+if (Math.abs(checkYaw) > degToRad(30)) continue; // Limite de ângulo que pode estar interferindo
+
 					if (Math.abs(newYaw) < degToRad(30)) {
 						if ((attackedPlayers[entity.id] || 0) < Date.now()) attackedPlayers[entity.id] = Date.now() + 100;
 						if (!didSwing) {
