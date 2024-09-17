@@ -690,7 +690,6 @@ function modifyCode(text) {
 								if (entity instanceof EntityPlayer) {
 									if (entity.mode.isSpectator() || entity.mode.isCreative() || entity.isInvisibleDump()) continue;
 									if (localTeam && localTeam == getTeam(entity)) continue;
-									if (attackList.length >= 2) continue;
 									attackList.push(entity);
 								}
 							}
