@@ -586,49 +586,31 @@ function modifyCode(text) {
 					const aimPos = player$1.pos.clone().sub(entity.pos);
 					const newYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.lastReportedYawDump);
 					const checkYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.yaw);
-
 					if (first) sendYaw = Math.abs(checkYaw) > degToRad(30) && Math.abs(checkYaw) < degToRad(killauraangle[1]) ? player$1.lastReportedYawDump + newYaw : false;
-
-					if (Math.abs(newYaw) < degToRad(360)) {
+					if (Math.abs(newYaw) < degToRad(30)) {
 						if ((attackedPlayers[entity.id] || 0) < Date.now()) attackedPlayers[entity.id] = Date.now() + 100;
-
 						if (!didSwing) {
 							hud3D.swingArm();
 							ClientSocket.sendPacket(new SPacketClick({}));
 							didSwing = true;
 						}
-
-						// Calcula uma posição de impacto ajustada com base no hitbox
 						const box = entity.getEntityBoundingBox();
-
-						// Amplia o hitbox para permitir ataques a distância
-						const extendedHitVec = new Vector3$1(
-							Math.max(player$1.getEyePos().x, box.min.x - killaurarange[1]), // Amplia o hitbox horizontal
-							player$1.getEyePos().y,
-							Math.max(player$1.getEyePos().z, box.min.z - killaurarange[1])  // Amplia o hitbox vertical
-						);
-
+						const hitVec = player$1.getEyePos().clone().clamp(box.min, box.max);
 						attacked++;
 						playerControllerMP.syncItemDump();
-
-						// Envia o pacote para o servidor simulando um ataque à distância
 						ClientSocket.sendPacket(new SPacketUseEntity({
 							id: entity.id,
-							action: 1, // Atacar entidade
+							action: 1,
 							hitVec: new PBVector3({
-								x: extendedHitVec.x,
-								y: extendedHitVec.y,
-								z: extendedHitVec.z
+								x: hitVec.x,
+								y: hitVec.y,
+								z: hitVec.z
 							})
 						}));
-
-						player$1.attackDump(entity); // Executa o ataque no cliente
+						player$1.attackDump(entity);
 					}
 				}
 			}
-
-
-
 
 			function swordCheck() {
 				const item = player$1.inventory.getCurrentItem();
@@ -687,9 +669,11 @@ function modifyCode(text) {
 						if (!killauraitem[1] || swordCheck()) {
 							for (const entity of entities.values()) {
 								if (entity.id == player$1.id) continue;
-								if (entity instanceof EntityPlayer) {
+								const newDist = player$1.getDistanceSqToEntity(entity);
+								if (newDist < (killaurarange[1] * killaurarange[1]) && entity instanceof EntityPlayer) {
 									if (entity.mode.isSpectator() || entity.mode.isCreative() || entity.isInvisibleDump()) continue;
 									if (localTeam && localTeam == getTeam(entity)) continue;
+									if (killaurawall[1] && !player$1.canEntityBeSeen(entity)) continue;
 									attackList.push(entity);
 								}
 							}
@@ -729,7 +713,7 @@ function modifyCode(text) {
 					unblock();
 				}
 			});
-			killaurarange = killaura.addoption("Range", Number, 50);
+			killaurarange = killaura.addoption("Range", Number, 9);
 			killauraangle = killaura.addoption("Angle", Number, 360);
 			killaurablock = killaura.addoption("AutoBlock", Boolean, true);
 			killaurawall = killaura.addoption("Wallcheck", Boolean, false);
