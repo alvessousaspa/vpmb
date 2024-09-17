@@ -583,57 +583,34 @@ function modifyCode(text) {
 
 			function killauraAttack(entity, first) {
 				if (attackDelay < Date.now()) {
-					// Calcula a posição relativa entre o jogador e o alvo
 					const aimPos = player$1.pos.clone().sub(entity.pos);
-					
-					// Remove ou aumenta a verificação de ângulo, dependendo da sua preferência
 					const newYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.lastReportedYawDump);
 					const checkYaw = wrapAngleTo180_radians(Math.atan2(aimPos.x, aimPos.z) - player$1.yaw);
-					
-					if (first) {
-						sendYaw = Math.abs(checkYaw) > degToRad(30) && Math.abs(checkYaw) < degToRad(killauraangle[1]) ? player$1.lastReportedYawDump + newYaw : false;
-					}
-
-					// Agora permite atacar mesmo com alvos fora do alcance padrão
-					// Verificação de alcance removida
-					if (Math.abs(newYaw) < degToRad(360)) { // Altere o valor para permitir 360° de ataques
-
-						if ((attackedPlayers[entity.id] || 0) < Date.now()) {
-							attackedPlayers[entity.id] = Date.now() + 100; // Tempo para o próximo ataque
-						}
-
+					if (first) sendYaw = Math.abs(checkYaw) > degToRad(30) && Math.abs(checkYaw) < degToRad(killauraangle[1]) ? player$1.lastReportedYawDump + newYaw : false;
+					if (Math.abs(newYaw) < degToRad(30)) {
+						if ((attackedPlayers[entity.id] || 0) < Date.now()) attackedPlayers[entity.id] = Date.now() + 100;
 						if (!didSwing) {
-							hud3D.swingArm(); // Animação de ataque
-							ClientSocket.sendPacket(new SPacketClick({})); // Envia o comando de ataque
+							hud3D.swingArm();
+							ClientSocket.sendPacket(new SPacketClick({}));
 							didSwing = true;
 						}
-
-						// Calcula a posição de ataque e garante que ele aconteça mesmo à distância
 						const box = entity.getEntityBoundingBox();
 						const hitVec = player$1.getEyePos().clone().clamp(box.min, box.max);
-
-						attacked++; // Incrementa o contador de ataques
-
-						// Sincroniza o ataque com o servidor, mesmo à longa distância
+						attacked++;
 						playerControllerMP.syncItemDump();
-
-						// Envia o pacote de uso de entidade com a posição ajustada para atingir o alvo
 						ClientSocket.sendPacket(new SPacketUseEntity({
 							id: entity.id,
-							action: 1, // Ataca a entidade
+							action: 1,
 							hitVec: new PBVector3({
-								x: hitVec.x, // Posição de acerto
+								x: hitVec.x,
 								y: hitVec.y,
 								z: hitVec.z
 							})
 						}));
-
-						// Chama o método de ataque no cliente
 						player$1.attackDump(entity);
 					}
 				}
 			}
-
 
 			function swordCheck() {
 				const item = player$1.inventory.getCurrentItem();
@@ -692,11 +669,9 @@ function modifyCode(text) {
 						if (!killauraitem[1] || swordCheck()) {
 							for (const entity of entities.values()) {
 								if (entity.id == player$1.id) continue;
-								const newDist = player$1.getDistanceSqToEntity(entity);
-								if (newDist < (killaurarange[1] * killaurarange[1]) && entity instanceof EntityPlayer) {
+									if (entity instanceof EntityPlayer) {
 									if (entity.mode.isSpectator() || entity.mode.isCreative() || entity.isInvisibleDump()) continue;
 									if (localTeam && localTeam == getTeam(entity)) continue;
-									if (killaurawall[1] && !player$1.canEntityBeSeen(entity)) continue;
 									attackList.push(entity);
 								}
 							}
