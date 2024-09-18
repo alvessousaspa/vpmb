@@ -531,22 +531,21 @@ function modifyCode(text) {
 				}
 			}
 
-			// Adicionando o módulo AlwaysSneak ao sistema
 			new Module("AlwaysSneak", function(callback) {
 				if (callback) {
-					// Se o módulo estiver ativado, sempre agache o jogador
+					// Usar tickRate para controlar a frequência com que o sneak é verificado
+					let lastSneakTime = 0;
 					tickLoop["AlwaysSneak"] = function() {
-						if (!player$1.isSneaking()) {
-							// Ativa o agachamento
-							playerControllerMP.setSneaking(true);
+						if (Date.now() - lastSneakTime > 100) { // Verifica o sneak a cada 100ms
+							if (!player$1.isSneaking()) {
+								player$1.setSneaking(true); // Ativa o sneak
+							}
+							lastSneakTime = Date.now();
 						}
 					};
 				} else {
-					// Se o módulo for desativado, parar de agachar
 					delete tickLoop["AlwaysSneak"];
-					if (player$1.isSneaking()) {
-						playerControllerMP.setSneaking(false);  // Desativa o agachamento se o módulo for desligado
-					}
+					player$1.setSneaking(false); // Desativa o sneak quando o módulo é desativado
 				}
 			});
 
