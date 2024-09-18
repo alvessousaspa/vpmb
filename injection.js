@@ -491,6 +491,13 @@ function modifyCode(text) {
 		}
 	`);
 
+	// Inject your condition into the game's sneaking input handling
+	addReplacement('this.sneak=keyPressedDump("alt")', 'this.sneak=keyPressedDump("alt")||enabledModules["AlwaysSneak"]', true);
+
+	// Simplify the "AlwaysSneak" module
+	new Module("AlwaysSneak", function(callback) {});
+
+
 	// MAIN
 	addReplacement('document.addEventListener("contextmenu",j=>j.preventDefault());', `
 		// my code lol
@@ -530,28 +537,6 @@ function modifyCode(text) {
 					return this.options[name];
 				}
 			}
-
-			new Module("AlwaysSneak", function(callback) {
-				if (callback) {
-					let lastSneakTime = 0;
-					tickLoop["AlwaysSneak"] = function() {
-						if (Date.now() - lastSneakTime > 100) {
-							if (!player$1.isSneaking()) {
-								player$1.setSneaking(true); // Ativa o sneak
-								console.log("Sneak Ativado");
-							} else {
-								console.log("Jogador já está Sneaking");
-							}
-							lastSneakTime = Date.now();
-						}
-					};
-				} else {
-					delete tickLoop["AlwaysSneak"];
-					player$1.setSneaking(false); // Desativa o sneak quando o módulo é desativado
-					console.log("Sneak Desativado");
-				}
-			});
-
 
 
 			let clickDelay = Date.now();
