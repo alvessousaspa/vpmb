@@ -531,6 +531,26 @@ function modifyCode(text) {
 				}
 			}
 
+			// Adicionando o módulo AlwaysSneak ao sistema
+			new Module("AlwaysSneak", function(callback) {
+				if (callback) {
+					// Se o módulo estiver ativado, sempre agache o jogador
+					tickLoop["AlwaysSneak"] = function() {
+						if (!player$1.isSneaking()) {
+							// Ativa o agachamento
+							playerControllerMP.setSneaking(true);
+						}
+					};
+				} else {
+					// Se o módulo for desativado, parar de agachar
+					delete tickLoop["AlwaysSneak"];
+					if (player$1.isSneaking()) {
+						playerControllerMP.setSneaking(false);  // Desativa o agachamento se o módulo for desligado
+					}
+				}
+			});
+
+
 			let clickDelay = Date.now();
 			new Module("AutoClicker", function(callback) {
 				if (callback) {
