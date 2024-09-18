@@ -33,20 +33,23 @@ function addDump(replacement, code) {
 }
 
 function modifyCode(text) {
-	for(const [name, regex] of Object.entries(dumpedVarNames)){
-		const matched = text.match(regex);
-		if (matched) {
-			console.log(name, regex, matched);
-			for(const [replacement, code] of Object.entries(replacements)){
-				delete replacements[replacement];
-				replacements[replacement.replaceAll(name, matched[1])] = [code[0].replaceAll(name, matched[1]), code[1]];
-			}
-		}
-	}
+    // Process dumps
+    for(const [name, regex] of Object.entries(dumpedVarNames)){
+        const matched = text.match(new RegExp(regex));
+        if (matched) {
+            console.log(name, regex, matched);
+            for(const [replacement, code] of Object.entries(replacements)){
+                delete replacements[replacement];
+                replacements[replacement.replaceAll(name, matched[1])] = [code[0].replaceAll(name, matched[1]), code[1]];
+            }
+        }
+    }
 
-	for(const [replacement, code] of Object.entries(replacements)){
-		text = text.replaceAll(replacement, code[1] ? code[0] : replacement + code[0]);
-	}
+    // Apply replacements
+    for(const [replacement, code] of Object.entries(replacements)){
+        const pattern = new RegExp(replacement, 'g');
+        text = text.replace(pattern, code[1] ? code[0] : replacement + code[0]);
+    }
 
 	var newScript = document.createElement("script");
 	newScript.type = "module";
@@ -74,6 +77,9 @@ function modifyCode(text) {
 	addDump('damageReduceAmountDump', 'ItemArmor&&\\(tt\\+\\=it\.([a-zA-Z]*)');
 	addDump('boxGeometryDump', 'ot=new Mesh\\(new ([a-zA-Z]*)\\(1');
 	addDump('syncItemDump', 'playerControllerMP\.([a-zA-Z]*)\\(\\),ClientSocket\.sendPacket');
+	// Dumping variable names for MeshLambertMaterial creation
+	addDump('blockTextureDump', '([a-zA-Z]*)=textureManager\.getTexture\(et\)');
+	addDump('blockMaterialDump', 'new MeshLambertMaterial\(\{map:([a-zA-Z]*),side:2\}\)');
 
 	// PRE
 	addReplacement('document.addEventListener("DOMContentLoaded",startGame,!1);', `
@@ -497,18 +503,19 @@ function modifyCode(text) {
 	addReplacement('this.sneak=keyPressedDump("alt")', 'this.sneak=keyPressedDump("alt")||enabledModules["AlwaysSneak"]', true);
 
 
-	// Modifique a criação do material dos blocos
-	addReplacement('new MeshLambertMaterial({ map: textureManager.getTexture(et), side: 2 })', `
-		(() => {
-			const material = new MeshLambertMaterial({ map: textureManager.getTexture(et), side: 2 });
+	addReplacement(
+		'new MeshLambertMaterial({map:blockTextureDump,side:2})',
+		`(() => {
+			const material = new MeshLambertMaterial({ map: blockTextureDump, side: 2 });
 			if (blockOpacityEnabled) {
 				material.opacity = 0.1;
 				material.transparent = true;
 			}
 			return material;
-		})()
-	`, true);
-
+		})()`,
+		true
+	);
+	
 	// MAIN
 	addReplacement('document.addEventListener("contextmenu",j=>j.preventDefault());', `
 		// my code lol
