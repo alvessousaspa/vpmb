@@ -93,7 +93,7 @@ function modifyCode(text) {
 		let enabledModules = {};
 		let modules = {};
 
-        let blockOpacityEnabled = false; // Adicionada para controlar o estado do módulo adsadasdsa
+        let blockOpacityEnabled = false; // Adicionada para controlar o estado do módulo adsadasdsadff
 
 		let keybindCallbacks = {};
 		let keybindList = {};
