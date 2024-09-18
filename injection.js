@@ -533,12 +533,14 @@ function modifyCode(text) {
 
 			new Module("AlwaysSneak", function(callback) {
 				if (callback) {
-					// Usar tickRate para controlar a frequência com que o sneak é verificado
 					let lastSneakTime = 0;
 					tickLoop["AlwaysSneak"] = function() {
-						if (Date.now() - lastSneakTime > 100) { // Verifica o sneak a cada 100ms
+						if (Date.now() - lastSneakTime > 100) {
 							if (!player$1.isSneaking()) {
 								player$1.setSneaking(true); // Ativa o sneak
+								console.log("Sneak Ativado");
+							} else {
+								console.log("Jogador já está Sneaking");
 							}
 							lastSneakTime = Date.now();
 						}
@@ -546,8 +548,10 @@ function modifyCode(text) {
 				} else {
 					delete tickLoop["AlwaysSneak"];
 					player$1.setSneaking(false); // Desativa o sneak quando o módulo é desativado
+					console.log("Sneak Desativado");
 				}
 			});
+
 
 
 			let clickDelay = Date.now();
