@@ -93,6 +93,8 @@ function modifyCode(text) {
 		let enabledModules = {};
 		let modules = {};
 
+        let blockOpacityEnabled = false; // Adicionada para controlar o estado do módulo
+
 		let keybindCallbacks = {};
 		let keybindList = {};
 
@@ -494,19 +496,6 @@ function modifyCode(text) {
 	// Inject your condition into the game's sneaking input handling
 	addReplacement('this.sneak=keyPressedDump("alt")', 'this.sneak=keyPressedDump("alt")||enabledModules["AlwaysSneak"]', true);
 
-	// Adicione a variável global para controlar a opacidade
-	addReplacement('Potions.jump.getId(),"5");', `
-		let blocking = false;
-		let sendYaw = false;
-		let breakStart = Date.now();
-		let noMove = Date.now();
-
-		let enabledModules = {};
-		let modules = {};
-		let blockOpacityEnabled = false; // Adicionada
-
-		// Resto do código existente...
-	`);
 
 	// Modifique a criação do material dos blocos
 	addReplacement('new MeshLambertMaterial({ map: textureManager.getTexture(et), side: 2 })', `
