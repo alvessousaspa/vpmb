@@ -494,9 +494,6 @@ function modifyCode(text) {
 	// Inject your condition into the game's sneaking input handling
 	addReplacement('this.sneak=keyPressedDump("alt")', 'this.sneak=keyPressedDump("alt")||enabledModules["AlwaysSneak"]', true);
 
-	// Simplify the "AlwaysSneak" module
-	new Module("AlwaysSneak", function(callback) {});
-
 
 	// MAIN
 	addReplacement('document.addEventListener("contextmenu",j=>j.preventDefault());', `
@@ -558,6 +555,9 @@ function modifyCode(text) {
 
 			// WTap
 			new Module("WTap", function() {});
+
+	// Simplify the "AlwaysSneak" module
+	new Module("AlwaysSneak", function(callback) {});
 
 			// AntiVoid
 			new Module("AntiFall", function(callback) {
