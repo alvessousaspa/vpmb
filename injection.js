@@ -494,6 +494,9 @@ function modifyCode(text) {
 	// Inject your condition into the game's sneaking input handling
 	addReplacement('this.sneak=keyPressedDump("alt")', 'this.sneak=keyPressedDump("alt")||enabledModules["AlwaysSneak"]', true);
 
+	// set opacity of all blocks to 0.1
+	
+
 
 	// MAIN
 	addReplacement('document.addEventListener("contextmenu",j=>j.preventDefault());', `
@@ -558,6 +561,31 @@ function modifyCode(text) {
 
 			// Simplify the "AlwaysSneak" module
 			new Module("AlwaysSneak", function(callback) {});
+
+			new Module("BlockOpacity", function(callback) {
+				if (callback) {
+					renderTickLoop["BlockOpacity"] = function() {
+						const blocks = game$1.world.getAllBlocks(); // Função fictícia para obter todos os blocos
+						for (const block of blocks) {
+							if (block.material && block.material.opacity !== undefined) {
+								block.material.opacity = 0.1; // Define a opacidade para 0.1
+								block.material.transparent = true; // Define como transparente
+							}
+						}
+					};
+				} else {
+					delete renderTickLoop["BlockOpacity"];
+					// Restaura a opacidade padrão quando o módulo é desativado
+					const blocks = game$1.world.getAllBlocks(); // Função fictícia para obter todos os blocos
+					for (const block of blocks) {
+						if (block.material && block.material.opacity !== undefined) {
+							block.material.opacity = 1.0; // Restaura a opacidade para o padrão (1.0)
+							block.material.transparent = false; // Remove a transparência
+						}
+					}
+				}
+			});
+
 
 			// AntiVoid
 			new Module("AntiFall", function(callback) {
